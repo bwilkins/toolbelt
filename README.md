@@ -4,7 +4,7 @@ TODO; still working on it
 
 ## Use
 
-    AWS_ACCESS_KEY_ID=<your-id> AWS_ACCESS_SECRET_KEY=<your-secret> toolbelt-go -s <stack-name>
+    AWS_ACCESS_KEY_ID=<your-id> AWS_ACCESS_SECRET_KEY=<your-secret> toolbelt -s <stack-name>
 
 
 ## LICENCES

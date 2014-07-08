@@ -1,7 +1,7 @@
 package ssh
 
 import (
-  "github.com/bwilkins/toolbelt-go/command"
+  "github.com/bwilkins/toolbelt/command"
   "github.com/bwilkins/aws/opsworks"
   "log"
   "strings"

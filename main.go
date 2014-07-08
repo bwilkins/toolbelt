@@ -1,7 +1,7 @@
 package main
 
 import (
-  "github.com/bwilkins/toolbelt-go/commands/ssh"
+  "github.com/bwilkins/toolbelt/commands/ssh"
   "os"
   //"github.com/bwilkins/aws/opsworks"
   //"fmt"
