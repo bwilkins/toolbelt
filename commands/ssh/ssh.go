@@ -1,12 +1,14 @@
 package ssh
 
 import (
-  "github.com/bwilkins/toolbelt/command"
-  "github.com/bwilkins/aws/opsworks"
   "log"
   "strings"
   "os"
   "os/exec"
+
+  "github.com/bwilkins/toolbelt/command"
+  "github.com/bwilkins/toolbelt/config"
+  "github.com/bwilkins/aws/opsworks"
 )
 
 var SshCmd = &command.Command{
@@ -17,6 +19,8 @@ var SshCmd = &command.Command{
 
 var stackName string
 var instanceName string
+var userName string
+var commandToRun string
 
 func runSsh(cmd *command.Command, args []string) {
   cmd.Flags.Parse(args)
@@ -37,13 +41,36 @@ func runSsh(cmd *command.Command, args []string) {
 
   instance := selectInstanceFromResponse(instanceName, instancesResponse)
 
-  shellCommand := exec.Command("ssh", "-l", "bugg", instance.PublicIp)
+  sshArgs := make([]string, 0)
+
+  username := getUsername()
+  if username != "" {
+    sshArgs = append(sshArgs, "-l", username)
+  }
+
+  sshArgs = append(sshArgs, instance.PublicIp)
+
+  if commandToRun == "" {
+    commandToRun = strings.Join(SshCmd.Flags.Args(), " ")
+  }
+  if commandToRun != "" {
+   sshArgs = append(sshArgs, commandToRun)
+  }
+
+  shellCommand := exec.Command("ssh", sshArgs...)
 
   shellCommand.Stdin = os.Stdin
   shellCommand.Stdout = os.Stdout
   shellCommand.Stderr = os.Stderr
 
   shellCommand.Run()
+}
+
+func getUsername() string {
+  if userName == "" {
+    userName = config.Config.OpsWorks.Ssh.DefaultUser
+  }
+  return userName
 }
 
 func init() {
@@ -55,6 +82,10 @@ func init() {
   SshCmd.Flags.StringVar(&stackName, "stack", "", "which stack find an instance to ssh into")
   SshCmd.Flags.StringVar(&instanceName, "i", "", "which instance to ssh into (fuzzy match)")
   SshCmd.Flags.StringVar(&instanceName, "instance", "", "which instance to ssh into (fuzzy match)")
+  SshCmd.Flags.StringVar(&userName, "u", "", "which user to ssh as")
+  SshCmd.Flags.StringVar(&userName, "username", "", "which user to ssh as")
+  SshCmd.Flags.StringVar(&commandToRun, "c", "", "which command to run upon logging in")
+  SshCmd.Flags.StringVar(&commandToRun, "command", "", "which command to run upon logging in")
 }
 
 func selectStackFromResponse(stackName string, response *opsworks.DescribeStacksResponse) opsworks.Stack {

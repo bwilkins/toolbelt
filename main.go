@@ -1,18 +1,23 @@
 package main
 
 import (
-  "github.com/bwilkins/toolbelt/commands/ssh"
   "os"
-  //"github.com/bwilkins/aws/opsworks"
-  //"fmt"
+  "os/user"
+  "path"
+
+  "github.com/bwilkins/aws"
+  "github.com/bwilkins/toolbelt/config"
+  "github.com/bwilkins/toolbelt/commands"
 )
 
 
 func main() {
-  ssh.SshCmd.Run(ssh.SshCmd, os.Args[1:])
+  usr, _ := user.Current()
+  config.SetConfig(path.Join(usr.HomeDir, ".toolbelt.yml"))
+  aws.SetAccessCredentials( aws.Credentials{config.Config.OpsWorks.AccessId, config.Config.OpsWorks.SecretKey} )
 
-  //request := opsworks.DescribeInstancesRequest{StackId: "ce22e71b-9b8e-4356-ab87-efcf02847f19"}
+  commandName := os.Args[1]
+  commandArgs := os.Args[2:]
 
-  //foo, _ := opsworks.DescribeInstances(request)
-  //fmt.Printf("%s", foo.Instances[0].Hostname)
+  commands.RunCommand(commandName, commandArgs)
 }
