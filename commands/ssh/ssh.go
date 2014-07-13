@@ -81,7 +81,7 @@ func selectInstanceFromResponse(instanceName string, response *opsworks.Describe
   }
 
   for _, mInstance := range response.Instances {
-    if strings.Contains(mInstance.InstanceId, instanceName) {
+    if strings.Contains(mInstance.Hostname, instanceName) {
       selectedInstance = mInstance
       break
     }
