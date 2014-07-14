@@ -6,6 +6,7 @@ import (
   "log"
   "github.com/bwilkins/toolbelt/command"
   "github.com/bwilkins/toolbelt/commands/ssh"
+  "github.com/bwilkins/toolbelt/commands/stacks"
 )
 
 func SelectCommand(commandName string) (*command.Command, error) {
@@ -32,5 +33,6 @@ func init() {
   commandMap = map[string]*command.Command{
     "ssh": ssh.SshCmd,
     "ssh-command": ssh.SshCmd,
+    "stacks": stacks.StacksCmd,
   }
 }
