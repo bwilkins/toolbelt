@@ -7,6 +7,7 @@ import (
   "github.com/bwilkins/toolbelt/command"
   "github.com/bwilkins/toolbelt/commands/ssh"
   "github.com/bwilkins/toolbelt/commands/stacks"
+  "github.com/bwilkins/toolbelt/commands/layers"
 )
 
 func SelectCommand(commandName string) (*command.Command, error) {
@@ -34,5 +35,6 @@ func init() {
     "ssh": ssh.SshCmd,
     "ssh-command": ssh.SshCmd,
     "stacks": stacks.StacksCmd,
+    "layers": layers.LayersCmd,
   }
 }
