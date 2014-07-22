@@ -26,28 +26,53 @@ func runStacks(cmd *command.Command, args []string) {
   if err != nil {
     log.Fatal(err.Error())
   }
-
   table := term_table.NewTermTable("Name", "Region", "# Layers", "# Instances", "ID")
+  tableRowCount := len(stacksResponse.Stacks)
+
+  stacksDetailsChan := make(chan []string, tableRowCount)
+
   for _, stack := range stacksResponse.Stacks {
-    var layersCount, instanceCount int
-    layersResponse, err := opsworks.DescribeLayers(opsworks.DescribeLayersRequest{ StackId: stack.StackId })
-    if err != nil {
-      layersCount = 0
-    } else {
-      layersCount = len(layersResponse.Layers)
-    }
-    instancesResponse, err := opsworks.DescribeInstances(opsworks.DescribeInstancesRequest{ StackId: stack.StackId })
-    if err != nil {
-      instanceCount = 0
-    } else {
-      instanceCount = len(instancesResponse.Instances)
-    }
+    go fetchStackDetails(stack, stacksDetailsChan)
+  }
 
-    layers := strconv.FormatInt(int64(layersCount), 10)
-    instances := strconv.FormatInt(int64(instanceCount), 10)
-
-    table.WriteRow(stack.Name, stack.Region, layers, instances, stack.StackId)
+  var row []string
+  for i := 0; i < tableRowCount; i+=1 {
+    row = <-stacksDetailsChan
+    table.WriteRow(row...)
   }
 
   table.PrintTable()
+}
+
+
+func fetchStackDetails(stack opsworks.Stack, c chan []string) {
+  var layerCountString, instanceCountString string
+  layerCountChan := make(chan int64, 1)
+  instanceCountChan := make(chan int64, 1)
+
+  fetchLayerCount(stack.StackId, layerCountChan)
+  fetchInstanceCount(stack.StackId, instanceCountChan)
+
+  layerCountString = strconv.FormatInt(<-layerCountChan, 10)
+  instanceCountString = strconv.FormatInt(<-instanceCountChan, 10)
+
+  c <- []string{stack.Name, stack.Region, layerCountString, instanceCountString, stack.StackId}
+}
+
+func fetchLayerCount(stackId string, ret chan int64) {
+  layersResponse, err := opsworks.DescribeLayers(opsworks.DescribeLayersRequest{ StackId: stackId })
+  if err == nil {
+    ret<- int64(len(layersResponse.Layers))
+  } else {
+    ret<- int64(0)
+  }
+}
+
+func fetchInstanceCount(stackId string, ret chan int64) {
+  instanceResponse, err := opsworks.DescribeInstances(opsworks.DescribeInstancesRequest{ StackId: stackId })
+  if err == nil {
+    ret<- int64(len(instanceResponse.Instances))
+  } else {
+    ret<- int64(0)
+  }
 }
